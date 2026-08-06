@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InsightFlow — Business Intelligence Dashboard</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+    <!-- Kill stale service workers / caches (from old PWA projects like LingoAi) -->
+    <script>
+        (function clearStalePWA() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    registrations.forEach(function (reg) { reg.unregister(); });
+                });
+            }
+            if (window.caches) {
+                caches.keys().then(function (keys) {
+                    keys.forEach(function (key) { caches.delete(key); });
+                });
+            }
+        })();
+    </script>
+</head>
+
+<body>
+
+    <!-- ===== LOGIN SCREEN ===== -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Insight<span class="accent">Flow</span></span>
+            </div>
+            <h1>Welcome Back</h1>
+            <p class="login-sub">Sign in to access your business intelligence dashboard</p>
+
+            <form id="loginForm" autocomplete="off">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> Username</label>
+                    <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock"></i> Password</label>
+                    <div class="password-wrap">
+                        <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
+                        <button type="button" class="toggle-pass" id="togglePass"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="checkbox"><input type="checkbox" id="rememberMe"> Remember me</label>
+                    <a href="#" id="forgotLink" class="forgot">Forgot password?</a>
+                </div>
+                <div id="loginError" class="login-error"></div>
+                <button type="submit" class="btn-primary login-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                </button>
+            </form>
+
+            <div class="demo-creds">
+                <i class="fa-solid fa-circle-info"></i>
+                Demo: <strong>admin</strong> / <strong>admin123</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Insight<span class="accent">Flow</span></span>
+        </div>
+
+        <nav>
+            <div class="nav-section">Main</div>
+            <a href="#" class="nav-link active" data-page="dashboard">
+                <i class="fa-solid fa-gauge-high"></i> Dashboard
+            </a>
+            <a href="#" class="nav-link" data-page="analytics">
+                <i class="fa-solid fa-chart-pie"></i> Analytics
+            </a>
+            <a href="#" class="nav-link" data-page="predictions">
+                <i class="fa-solid fa-brain"></i> Predictions
+            </a>
+
+            <div class="nav-section">Manage</div>
+            <a href="#" class="nav-link" data-page="reports">
+                <i class="fa-solid fa-file-lines"></i> Reports
+            </a>
+            <a href="#" class="nav-link" data-page="customers">
+                <i class="fa-solid fa-users"></i> Customers
+            </a>
+            <a href="#" class="nav-link" data-page="settings">
+                <i class="fa-solid fa-gear"></i> Settings
+            </a>
+        </nav>
+
+<div class="sidebar-footer">
+            <div class="user-mini">
+                <div class="avatar">KS</div>
+                <div>
+                    <div class="user-name">Kowsalya</div>
+                    <div class="user-role">Analytics Admin</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <!-- Header -->
+        <header class="topbar">
+            <button id="menuBtn" class="icon-btn" title="Menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search metrics, reports, customers..." id="searchInput">
+            </div>
+
+<div class="topbar-actions">
+                <div class="dropdown-wrap">
+                    <button class="icon-btn" id="notifBtn" title="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <div class="dropdown dropdown-notif" id="notifDropdown">
+                        <div class="dropdown-head">Notifications</div>
+                        <div class="notif-item">
+                            <i class="fa-solid fa-arrow-trend-up notif-icon up"></i>
+                            <div>
+                                <div class="notif-text">Revenue up 12% this month</div>
+                                <div class="notif-time">2 min ago</div>
+                            </div>
+                        </div>
+                        <div class="notif-item">
+                            <i class="fa-solid fa-bullseye notif-icon warn"></i>
+                            <div>
+                                <div class="notif-text">Forecast confidence above 85%</div>
+                                <div class="notif-time">1 hr ago</div>
+                            </div>
+                        </div>
+                        <div class="notif-item">
+                            <i class="fa-solid fa-user-plus notif-icon info"></i>
+                            <div>
+                                <div class="notif-text">New customer signups detected</div>
+                                <div class="notif-time">3 hrs ago</div>
+                            </div>
+                        </div>
+                        <button class="dropdown-footer" id="markRead">Mark all as read</button>
+                    </div>
+                </div>
+
+                <button class="icon-btn" id="exportBtn" title="Export CSV">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+
+                <div class="dropdown-wrap">
+                    <button class="icon-btn avatar-top" id="profileBtn" title="Profile">KS</button>
+                    <div class="dropdown dropdown-profile" id="profileDropdown">
+                        <div class="profile-head">
+                            <div class="avatar">KS</div>
+                            <div>
+                                <div class="user-name">Kowsalya</div>
+                                <div class="user-role">Analytics Admin</div>
+                            </div>
+                        </div>
+                        <a href="#" class="profile-link" data-action="profile"><i class="fa-solid fa-id-badge"></i> My Profile</a>
+                        <a href="#" class="profile-link" data-action="preferences"><i class="fa-solid fa-sliders"></i> Preferences</a>
+                        <a href="#" class="profile-link" data-action="help"><i class="fa-solid fa-circle-question"></i> Help &amp; Support</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="profile-link logout" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="content">
+
+            <!-- Page Title + Filters -->
+            <div class="page-head">
+                <div>
+                    <h1 id="pageTitle">Business Intelligence Dashboard</h1>
+                    <p class="subtitle">Real-time performance insights with predictive analytics</p>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Period</label>
+                        <select id="periodFilter">
+                            <option value="6">Last 6 Months</option>
+                            <option value="12" selected>Last 12 Months</option>
+                            <option value="24">Last 24 Months</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Region</label>
+                        <select id="regionFilter">
+                            <option value="all" selected>All Regions</option>
+                            <option value="north">North</option>
+                            <option value="south">South</option>
+                            <option value="east">East</option>
+                            <option value="west">West</option>
+                        </select>
+                    </div>
+                    <button id="forecastBtn" class="btn-primary">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Run Forecast
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <section class="kpi-grid" id="kpiGrid">
+                <!-- Filled dynamically -->
+            </section>
+
+            <!-- Charts Row 1 -->
+            <section class="chart-grid">
+                <div class="card card-wide">
+                    <div class="card-head">
+                        <div>
+                            <h3>Revenue Trend &amp; Forecast</h3>
+                            <p class="card-sub">Historical revenue with 6 month projection</p>
+                        </div>
+                        <div class="legend-inline">
+                            <span class="legend-dot historical"></span> Historical
+                            <span class="legend-dot forecast"></span> Forecast
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <h3>Sales by Category</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+<!-- Charts Row 2 -->
+            <section class="chart-grid three-col">
+                <div class="card">
+                    <div class="card-head">
+                        <h3>Regional Performance</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="regionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <h3>Monthly Orders</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="ordersChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-head">
+                        <h3>Predictive Score</h3>
+                    </div>
+                    <div class="predictive-score">
+                        <div class="score-ring" id="scoreRing">
+                            <div class="score-value">
+                                <span id="scoreValue">0</span>
+                                <small>%</small>
+                            </div>
+                        </div>
+                        <p class="score-label">Model Confidence</p>
+                        <p class="score-desc" id="scoreDesc">Computing...</p>
+                    </div>
+                </div>
+            </section>
+
+<!-- Prediction Insights -->
+            <section class="card insight-card">
+                <div class="card-head">
+                    <h3><i class="fa-solid fa-lightbulb"></i> AI Predictive Insights</h3>
+                    <button class="btn-ghost" id="refreshInsight"><i class="fa-solid fa-rotate"></i></button>
+                </div>
+                <div class="insight-list" id="insightList">
+                    <!-- Filled dynamically -->
+                </div>
+            </section>
+
+            <!-- Dynamic page content (for Analytics, Predictions, Reports, Customers, Settings) -->
+            <div id="pageContent"></div>
+
+        </main>
+
+<!-- Footer -->
+        <footer class="footer">
+            <span>InsightFlow BI Dashboard</span>
+            <span class="footer-right" id="footerStatus">Data refreshed just now</span>
+        </footer>
+
+    </div>
+
+    <!-- ===== TOAST CONTAINER ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-icon" id="modalIcon"><i class="fa-solid fa-circle-question"></i></div>
+            <h2 id="modalTitle">Are you sure?</h2>
+            <p id="modalText">This action cannot be undone.</p>
+            <div class="modal-btns">
+                <button class="btn-ghost" id="modalCancel">Cancel</button>
+                <button class="btn-primary" id="modalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic page content templates (used by app.js) -->
+    <template id="analyticsTemplate">
+        <h1>Analytics</h1>
+        <p class="subtitle">Deep-dive performance analytics across all dimensions</p>
+        <div class="analytics-kpis" id="analyticsKpis"></div>
+        <div class="chart-grid">
+            <div class="card">
+                <div class="card-head"><h3>Profit by Category</h3></div>
+                <div class="chart-container"><canvas id="profitCatChart"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-head"><h3>Customer Growth</h3></div>
+                <div class="chart-container"><canvas id="customerChart"></canvas></div>
+            </div>
+        </div>
+    </template>
+
+    <template id="predictionsTemplate">
+        <h1>Predictions</h1>
+        <p class="subtitle">Machine-learning driven forecasts for future planning</p>
+        <div class="prediction-forecast">
+            <div class="card">
+                <div class="card-head"><h3>Revenue Forecast (Next 6 months)</h3></div>
+                <div class="chart-container"><canvas id="predRevenueChart"></canvas></div>
+            </div>
+        </div>
+        <div class="prediction-metrics" id="predictionMetrics"></div>
+    </template>
+
+    <template id="reportsTemplate">
+        <h1>Reports</h1>
+        <p class="subtitle">Generate and download business reports</p>
+        <div class="report-actions">
+            <button class="btn-primary" data-report="sales"><i class="fa-solid fa-file-csv"></i> Export Sales Report</button>
+            <button class="btn-primary" data-report="customers-report"><i class="fa-solid fa-file-csv"></i> Export Customer Report</button>
+            <button class="btn-primary" data-report="forecast"><i class="fa-solid fa-file-csv"></i> Export Forecast Report</button>
+        </div>
+        <div class="card report-summary" id="reportSummary"></div>
+    </template>
+
+    <template id="customersTemplate">
+        <h1>Customers</h1>
+        <p class="subtitle">Customer insights and acquisition metrics</p>
+        <div class="card">
+            <div class="card-head"><h3>Top Customers</h3></div>
+            <div class="table-wrap" id="customersTable"></div>
+        </div>
+    </template>
+
+    <template id="settingsTemplate">
+        <h1>Settings</h1>
+        <p class="subtitle">Manage your dashboard preferences</p>
+        <div class="card settings-card">
+            <div class="setting-row">
+                <div>
+                    <h4>Notifications</h4>
+                    <p>Receive alerts for key metrics and forecasts</p>
+                </div>
+                <label class="switch"><input type="checkbox" id="notifSetting" checked><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <h4>Auto-refresh data</h4>
+                    <p>Automatically refresh dashboard data every 60 seconds</p>
+                </div>
+                <label class="switch"><input type="checkbox" id="autorefreshSetting" checked><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+                <div>
+                    <h4>Dark mode</h4>
+                    <p>Always use dark theme (default)</p>
+                </div>
+                <label class="switch"><input type="checkbox" id="darkmodeSetting" checked><span class="slider"></span></label>
+            </div>
+            <button class="btn-primary" id="saveSettings"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+        </div>
+    </template>
+
+    <!-- JavaScript -->
+    <script src="data.js"></script>
+    <script src="predictive.js"></script>
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
